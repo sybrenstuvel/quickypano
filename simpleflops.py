@@ -8,10 +8,19 @@ import glob
 import argparse
 import os
 import os.path
+import random
 import time
+import threading
+import concurrent.futures
+import logging
+import sys
 
 import panoflops.project
 import panoflops.hugin
+
+logging.basicConfig(level=logging.INFO)
+log = logging.getLogger('simpleflops')
+log.setLevel(logging.INFO)
 
 parser = argparse.ArgumentParser(description='Creates a 360 Hugin file.')
 parser.add_argument('filename', metavar='FILENAME', type=str, help='the output filename')
@@ -19,7 +28,6 @@ parser.add_argument('--hugin-bin', metavar='HUGIN_BINDIR', type=str, help="Hugin
                     default=r'c:\Program Files\Hugin\bin')
 parser.add_argument('--hdr-offset', type=int, help="Which photo to pick for CPFind",
                     default=0)
-
 
 args = parser.parse_args()
 # [r'J:\2014\2014-08-xx Vakantie Kroatie\Haus am Berg panos\1. terras\1_terras.pto'])
@@ -52,16 +60,20 @@ print('stack size is %i' % project.stack_size)
 project.move_anchor(args.hdr_offset)
 project.set_variables()
 
+project_lock = threading.RLock()
 
 # Find control points
 def find_control_points(idx_0, idx_1):
     if idx_0 > idx_1:
         idx_0, idx_1 = idx_1, idx_0
 
-    print('Finding control points for images %i -- %i' % (idx_0, idx_1))
+    pid = os.getpid()
+    rdm = random.randint(0, 2 ** 20)
 
-    cpfind_inname = os.path.join(basedir, 'cpfind_in.pto')
-    cpfind_outname = os.path.join(basedir, 'cpfind_out.pto')
+    log.info('Finding control points for images %i -- %i', idx_0, idx_1)
+
+    cpfind_inname = os.path.join(basedir, 'cpfind_in-%i-%i.pto' % (pid, rdm))
+    cpfind_outname = os.path.join(basedir, 'cpfind_out-%i-%i.pto' % (pid, rdm))
 
     clone = project.get_slice([idx_0, idx_1])
     clone.hugin_filename = cpfind_inname
@@ -80,31 +92,58 @@ def find_control_points(idx_0, idx_1):
 
             cpoint_info = line.split()
             cpoint_line = ' '.join(cpoint_info[3:])
-            project.control_points.append('c n%i N%i %s' % (idx_0, idx_1, cpoint_line))
+            with project_lock:
+                project.control_points.append('c n%i N%i %s' % (idx_0, idx_1, cpoint_line))
 
     os.unlink(cpfind_inname)
     os.unlink(cpfind_outname)
 
 
-def find_cpoints_for_ring(ring_size, ring_offset):
+def find_cpoints_for_ring(ring_size, ring_offset, executor):
     ring_offset *= project.stack_size
 
     for stack_idx in range(ring_size):
         next_stack_idx = (stack_idx + 1) % ring_size
         idx = project.stack_size * stack_idx
         next_idx = project.stack_size * next_stack_idx
-        find_control_points(idx + ring_offset, next_idx + ring_offset)
+
+        log.debug('Calling find_control_points(%i, %i)', idx + ring_offset, next_idx + ring_offset)
+        executor.submit(find_control_points,
+                        idx + ring_offset, next_idx + ring_offset)
+
 
 # Create control points for each ring
 # TODO: use order from settings
-find_cpoints_for_ring(project.settings.ROW_MIDDLE, 0)
-find_cpoints_for_ring(project.settings.ROW_DOWN,
-                      project.settings.ROW_MIDDLE)
-find_cpoints_for_ring(project.settings.ROW_UP,
-                      project.settings.ROW_DOWN + project.settings.ROW_MIDDLE)
+project.control_points.clear()
+with concurrent.futures.ThreadPoolExecutor(os.cpu_count() / 2) as executor:
+    sett = project.settings
+    find_cpoints_for_ring(sett.ROW_MIDDLE, 0, executor)
+    find_cpoints_for_ring(sett.ROW_DOWN, sett.ROW_MIDDLE, executor)
+    find_cpoints_for_ring(sett.ROW_UP, sett.ROW_DOWN + sett.ROW_MIDDLE, executor)
+
+    ### Attach rings
+    # From start of middle to start of the other rings
+    ssize = project.stack_size
+    down_start_idx = sett.ROW_MIDDLE * ssize
+    up_start_idx = (sett.ROW_MIDDLE + sett.ROW_DOWN) * ssize
+    executor.submit(find_control_points, 0, down_start_idx)
+    executor.submit(find_control_points, 0, up_start_idx)
+
+    # From mid of middle to mid of the other rings
+    row_middle_mid = ssize * sett.ROW_MIDDLE // 2
+    executor.submit(find_control_points, row_middle_mid,
+                    down_start_idx + ssize * sett.ROW_DOWN // 2)
+    executor.submit(find_control_points, row_middle_mid,
+                    up_start_idx + ssize * sett.ROW_UP // 2)
+
+
+sys.stderr.flush()
+sys.stdout.flush()
+
+log.info('Found a total of %i control points', len(project.control_points))
 
 # Create Hugin project file
 project.create_hugin_project()
 
 end_time = time.time()
-print('Total running time: %.1f seconds' % (end_time - start_time))
+log.info('Total running time: %.1f seconds', end_time - start_time)

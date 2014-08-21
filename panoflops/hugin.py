@@ -95,13 +95,17 @@ def pto_var(input_filename, output_filename):
     subprocess.check_call([_pto_var,
                            input_filename,
                            '-o', output_filename,
-                           '--opt', 'y,p,r,v,Eev'])
+                           '--opt', 'y,p,r,v,Eev'],
+                          stdout=subprocess.DEVNULL,
+                          stderr=subprocess.DEVNULL)
 
 
 def cpfind(input_filename, output_filename):
     subprocess.check_call([_cpfind,
                            input_filename,
-                           '-o', output_filename])
+                           '-o', output_filename],
+                          stdout=subprocess.DEVNULL,
+                          stderr=subprocess.DEVNULL)
 
 
 def stitch_project(pto_filename):

@@ -4,9 +4,13 @@ Data model for projects.
 
 import json
 import os.path
+import logging
+import os
+import threading
 
 from . import settings, hugin
 
+log = logging.getLogger(__name__)
 
 DEFAULT_PARAMS = {
     'y': 0.0,
@@ -158,12 +162,14 @@ class Project:
 
         # Modify it using pto_var
         basedir = os.path.dirname(self.hugin_filename)
-        tmpproj_pto = os.path.join(basedir, 'tmpproj.pto')
+        tmpproj_pto = os.path.join(basedir, 'tmppto-%i-%i.pto' %
+                                   (os.getpid(), threading.get_ident()))
+
         hugin.pto_var(self.hugin_filename, tmpproj_pto)
         os.unlink(self.hugin_filename)
         os.rename(tmpproj_pto, self.hugin_filename)
 
-        print('Moved to %s' % self.hugin_filename)
+        log.debug('Saved project as %s', self.hugin_filename)
 
     def get_slice(self, indices):
         # Clone the project
