@@ -8,19 +8,23 @@ import subprocess
 
 _cpfind = None
 _pto_var = None
+_stitch = None
 
 
 def set_hugin_bindir(dirname: str):
-    global _cpfind, _pto_var
+    global _cpfind, _pto_var, _stitch
 
     _cpfind = os.path.join(dirname, 'cpfind.exe')
     _pto_var = os.path.join(dirname, 'pto_var.exe')
+    _stitch = os.path.join(dirname, 'hugin_stitch_project..exe')
 
 
-def write_header(outfile):
+def write_header(outfile, project):
+
     print('''# hugin project file
 #hugin_ptoversion 2
-p f2 w6000 h3000 v360  E4.1743 R0 n"TIFF_m c:LZW r:CROP"
+# Created by Panoflops
+p f2 w6000 h3000 v360 k0 E4.1743 R0 n"TIFF_m c:LZW r:CROP"
 m g1 i0 f0 m2 p0.00784314
 ''', file=outfile)
 
@@ -39,7 +43,6 @@ def write_images(outfile, project):
 
 
 def write_footer(outfile, project):
-
     control_points = os.linesep.join(project.control_points)
 
     print('''
@@ -83,7 +86,7 @@ v
 
 
 def write(outfile, project):
-    write_header(outfile)
+    write_header(outfile, project)
     write_images(outfile, project)
     write_footer(outfile, project)
 
@@ -101,3 +104,12 @@ def cpfind(input_filename, output_filename):
                            '-o', output_filename])
 
 
+def stitch_project(pto_filename):
+    if not pto_filename.endswith('.pto'):
+        raise ValueError('pto_filename should end in ".pto"')
+
+    prefix = pto_filename.replace('.pto', '')
+    # hugin_stitch_project.exe /w 1_terras.pto /o 1_terras_fused
+    subprocess.check_call([_stitch,
+                           '/w', pto_filename,
+                           '/o', prefix])

@@ -47,7 +47,7 @@ DEFAULT_PARAMS = {
 # Params that are always cloned from the first image
 CLONE_FROM_FIRST = 'v Ra Rb Rc Rd Re a b c d e g t Va Vb Vc Vd Vx Vy'.split()
 
-# Params that are always cloned from the first image in the stack
+# Params that are always cloned from the anchor image in the stack
 CLONE_FROM_STACK = 'y p r TrX TrY TrZ j'.split()
 
 
@@ -62,36 +62,52 @@ class Project:
         self.filename = ''
         self.hugin_filename = ''
         self.photos = []
-        self.is_hdr = False
+        self.stack_size = 1
         self.settings = settings.DEFAULT_SETTINGS()
         self.control_points = []  # list of control point line strings
+
+    @property
+    def is_hdr(self) -> bool:
+        return self.stack_size > 1
 
     def load_photos(self, filenames):
         self.photos = [Image(filename) for filename in filenames]
 
+    def move_anchor(self, anchor_idx):
+        """Moves the N'th image to the front of each stack."""
+
+        if not self.is_hdr:
+            return
+
+        ssize = self.stack_size
+        for stack_idx in range(len(self.photos) // ssize):
+            stack_slice = slice(stack_idx * ssize, (stack_idx + 1) * ssize)
+            stack = self.photos[stack_slice]
+            anchor = stack[anchor_idx]
+            del stack[anchor_idx]
+            self.photos[stack_slice] = [anchor] + stack
+
+
     def set_variables(self):
 
         for idx, image in enumerate(self.photos):
-            idx_for_ypr = idx
-
-            if self.is_hdr:
-                first_of_stack = idx - (idx % 3)
-                idx_for_ypr = first_of_stack / 3
+            stack_idx = idx // self.stack_size
+            stack_anchor = stack_idx * self.stack_size  # Always the first image in the stack
 
             # TODO: get order from settings
-            if idx_for_ypr < self.settings.ROW_MIDDLE:
+            if stack_idx < self.settings.ROW_MIDDLE:
                 # Middle row
-                idx_in_row = idx_for_ypr
+                idx_in_row = stack_idx
                 row_size = self.settings.ROW_MIDDLE
                 pitch = 0
-            elif idx_for_ypr < self.settings.ROW_MIDDLE + self.settings.ROW_DOWN:
+            elif stack_idx < self.settings.ROW_MIDDLE + self.settings.ROW_DOWN:
                 # Down row
-                idx_in_row = idx_for_ypr - self.settings.ROW_MIDDLE
+                idx_in_row = stack_idx - self.settings.ROW_MIDDLE
                 row_size = self.settings.ROW_DOWN
                 pitch = -45
             else:
                 # Up row
-                idx_in_row = idx_for_ypr - self.settings.ROW_MIDDLE - self.settings.ROW_DOWN
+                idx_in_row = stack_idx - self.settings.ROW_MIDDLE - self.settings.ROW_DOWN
                 row_size = self.settings.ROW_UP
                 pitch = 45
 
@@ -102,9 +118,9 @@ class Project:
             if idx > 0:
                 for param in CLONE_FROM_FIRST:
                     variables[param] = '=0'
-            if self.is_hdr and idx != first_of_stack:
+            if self.is_hdr and idx != stack_anchor:
                 for param in CLONE_FROM_STACK:
-                    variables[param] = '=%i' % first_of_stack
+                    variables[param] = '=%i' % stack_anchor
 
             image.parameters.update(variables)
 
@@ -155,7 +171,20 @@ class Project:
         clone.filename = self.filename
         clone.hugin_filename = self.hugin_filename
         clone.photos = [self.photos[i] for i in indices]
-        clone.is_hdr = self.is_hdr
+        clone.stack_size = self.stack_size
         clone.settings = self.settings
 
+        # Fix up references to other photos by copying the referred value.
+        for photo in clone.photos:
+            new_params = {}
+            for key, value in photo.parameters.items():
+                # Keep following references until we've found an actual value.
+                while isinstance(value, str) and value.startswith('='):
+                    refidx = int(value[1:])
+                    value = self.photos[refidx].parameters[key]
+                new_params[key] = value
+
+            photo.parameters.update(new_params)
+
         return clone
+
