@@ -15,6 +15,7 @@ import concurrent.futures
 import logging
 import sys
 
+import panoflops
 import panoflops.project
 import panoflops.hugin
 
@@ -61,6 +62,7 @@ project.move_anchor(args.hdr_offset)
 project.set_variables()
 
 project_lock = threading.RLock()
+
 
 # Find control points
 def find_control_points(idx_0, idx_1):
@@ -112,35 +114,42 @@ def find_cpoints_for_ring(ring_size, ring_offset, executor):
                         idx + ring_offset, next_idx + ring_offset)
 
 
-# Create control points for each ring
-# TODO: use order from settings
-project.control_points.clear()
-with concurrent.futures.ThreadPoolExecutor(os.cpu_count() / 2) as executor:
-    sett = project.settings
-    find_cpoints_for_ring(sett.ROW_MIDDLE, 0, executor)
-    find_cpoints_for_ring(sett.ROW_DOWN, sett.ROW_MIDDLE, executor)
-    find_cpoints_for_ring(sett.ROW_UP, sett.ROW_DOWN + sett.ROW_MIDDLE, executor)
+def find_all_control_points():
+    # Create control points for each ring
+    # TODO: use order from settings
+    project.control_points.clear()
 
-    ### Attach rings
-    # From start of middle to start of the other rings
-    ssize = project.stack_size
-    down_start_idx = sett.ROW_MIDDLE * ssize
-    up_start_idx = (sett.ROW_MIDDLE + sett.ROW_DOWN) * ssize
-    executor.submit(find_control_points, 0, down_start_idx)
-    executor.submit(find_control_points, 0, up_start_idx)
+    panoflops.lowpriority()
 
-    # From mid of middle to mid of the other rings
-    row_middle_mid = ssize * sett.ROW_MIDDLE // 2
-    executor.submit(find_control_points, row_middle_mid,
-                    down_start_idx + ssize * sett.ROW_DOWN // 2)
-    executor.submit(find_control_points, row_middle_mid,
-                    up_start_idx + ssize * sett.ROW_UP // 2)
+    with concurrent.futures.ThreadPoolExecutor(os.cpu_count()) as executor:
+        sett = project.settings
+        find_cpoints_for_ring(sett.ROW_MIDDLE, 0, executor)
+        find_cpoints_for_ring(sett.ROW_DOWN, sett.ROW_MIDDLE, executor)
+        find_cpoints_for_ring(sett.ROW_UP, sett.ROW_DOWN + sett.ROW_MIDDLE, executor)
+
+        # ## Attach rings
+        # From start of middle to start of the other rings
+        ssize = project.stack_size
+        down_start_idx = sett.ROW_MIDDLE * ssize
+        up_start_idx = (sett.ROW_MIDDLE + sett.ROW_DOWN) * ssize
+        executor.submit(find_control_points, 0, down_start_idx)
+        executor.submit(find_control_points, 0, up_start_idx)
+
+        # From mid of middle to mid of the other rings
+        row_middle_mid = ssize * sett.ROW_MIDDLE // 2
+        executor.submit(find_control_points, row_middle_mid,
+                        down_start_idx + ssize * sett.ROW_DOWN // 2)
+        executor.submit(find_control_points, row_middle_mid,
+                        up_start_idx + ssize * sett.ROW_UP // 2)
+
+    sys.stderr.flush()
+    sys.stdout.flush()
+    panoflops.normalpriority()
+
+    log.info('Found a total of %i control points', len(project.control_points))
 
 
-sys.stderr.flush()
-sys.stdout.flush()
-
-log.info('Found a total of %i control points', len(project.control_points))
+find_all_control_points()
 
 # Create Hugin project file
 project.create_hugin_project()

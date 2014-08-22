@@ -7,6 +7,9 @@ import os.path
 import logging
 import os
 import threading
+import math
+import PIL.Image
+import PIL.ExifTags
 
 from . import settings, hugin
 
@@ -60,6 +63,21 @@ class Image:
         self.parameters = DEFAULT_PARAMS.copy()
         self.filename = filename
 
+        self.calculate_ev()
+
+    def calculate_ev(self):
+        img = PIL.Image.open(self.filename)
+        exif = {PIL.ExifTags.TAGS[k]: v
+                for k, v in img._getexif().items()
+                if k in PIL.ExifTags.TAGS}
+
+        # Source: http://en.wikipedia.org/wiki/Exposure_value
+        f_nr = exif['FNumber'][0] / exif['FNumber'][1]
+        t = exif['ExposureTime'][0] / exif['ExposureTime'][1]
+        ev = math.log2(f_nr ** 2 / t)
+
+        self.parameters['Eev'] = ev
+
 
 class Project:
     def __init__(self):
@@ -69,6 +87,7 @@ class Project:
         self.stack_size = 1
         self.settings = settings.DEFAULT_SETTINGS()
         self.control_points = []  # list of control point line strings
+        self.average_ev = 0.0  # average exposure value
 
     @property
     def is_hdr(self) -> bool:
@@ -90,7 +109,6 @@ class Project:
             anchor = stack[anchor_idx]
             del stack[anchor_idx]
             self.photos[stack_slice] = [anchor] + stack
-
 
     def set_variables(self):
 
@@ -127,6 +145,8 @@ class Project:
                     variables[param] = '=%i' % stack_anchor
 
             image.parameters.update(variables)
+
+        self.average_ev = sum(img.parameters['Eev'] for img in self.photos) / len(self.photos)
 
 
     @classmethod

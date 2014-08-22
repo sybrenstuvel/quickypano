@@ -23,10 +23,9 @@ def write_header(outfile, project):
 
     print('''# hugin project file
 #hugin_ptoversion 2
-# Created by Panoflops
-p f2 w6000 h3000 v360 k0 E4.1743 R0 n"TIFF_m c:LZW r:CROP"
+p f2 w6000 h3000 v360 k0 E%f R0 n"TIFF_m c:LZW r:CROP"
 m g1 i0 f0 m2 p0.00784314
-''', file=outfile)
+''' % project.average_ev, file=outfile)
 
 
 IMAGE_PARAM_ORDER = ('w h f v Ra Rb Rc Rd Re Eev Er Eb '
