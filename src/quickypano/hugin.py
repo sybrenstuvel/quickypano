@@ -23,7 +23,7 @@ def write_header(outfile, project):
 
     print('''# hugin project file
 #hugin_ptoversion 2
-p f2 w6000 h3000 v360 k0 E%f R0 n"TIFF_m c:LZW r:CROP"
+p f2 w8192 h4096 v360 k0 E%f R0 n"TIFF_m c:LZW r:CROP"
 m g1 i0 f0 m2 p0.00784314
 ''' % project.average_ev, file=outfile)
 
@@ -44,6 +44,12 @@ def write_images(outfile, project):
 def write_footer(outfile, project):
     control_points = os.linesep.join(project.control_points)
 
+    params = {
+        'control_points': control_points,
+        'hugin_outputLDRBlended': str(not project.is_hdr).lower(),
+        'hugin_outputLDRExposureBlended': str(project.is_hdr).lower(),
+    }
+
     print('''
 
 
@@ -52,19 +58,19 @@ v
 
 
 # control points
-%s
+%(control_points)s
 
 #hugin_optimizeReferenceImage 0
 #hugin_blender enblend
 #hugin_remapper nona
-#hugin_enblendOptions
+#hugin_enblendOptions --no-ciecam
 #hugin_enfuseOptions
 #hugin_hdrmergeOptions -m avg -c
-#hugin_outputLDRBlended false
+#hugin_outputLDRBlended %(hugin_outputLDRBlended)s
 #hugin_outputLDRLayers false
 #hugin_outputLDRExposureRemapped false
 #hugin_outputLDRExposureLayers false
-#hugin_outputLDRExposureBlended true
+#hugin_outputLDRExposureBlended %(hugin_outputLDRExposureBlended)s
 #hugin_outputLDRStacks false
 #hugin_outputLDRExposureLayersFused false
 #hugin_outputHDRBlended false
@@ -81,7 +87,7 @@ v
 #hugin_optimizerMasterSwitch 6
 #hugin_optimizerPhotoMasterSwitch 20
 
-''' % control_points, file=outfile)
+''' % params, file=outfile)
 
 
 def write(outfile, project):
