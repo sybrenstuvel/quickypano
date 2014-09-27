@@ -7,6 +7,7 @@ Switches source images between JPEG and TIFF.
 import argparse
 import os
 import re
+import quickypano.hugin
 
 FTYPES = {
     'TIFF': {'path': 'tiff16', 'extension': 'tif'},
@@ -24,8 +25,11 @@ def main():
                         dest='filetype',
                         default='TIFF',
                         help='Type to switch to')
+    parser.add_argument('--hugin', metavar='HUGIN_DIR', type=str, help="Hugin's directory",
+                        default=r'c:\Program Files*\Hugin')
 
     args = parser.parse_args()
+    quickypano.hugin.find_hugin(args.hugin)
 
     print('Switching %s to %s' % (args.filename, args.filetype))
     fname_re = re.compile(r'n"\w+[/\\](\w+)\.\w+"')
@@ -51,6 +55,11 @@ def main():
     print('Moving %s to %s' % (outname, args.filename))
     os.unlink(args.filename)
     os.rename(outname, args.filename)
+
+    print('Creating %s.mk' % args.filename)
+    quickypano.hugin.pto2mk(args.filename)
+
+    print('Done!')
 
 
 if __name__ == '__main__':

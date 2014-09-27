@@ -9,18 +9,34 @@ import subprocess
 _cpfind = None
 _pto_var = None
 _stitch = None
+_pto2mk = None
+_make = None
 
 
 def set_hugin_bindir(dirname: str):
-    global _cpfind, _pto_var, _stitch
+    global _cpfind, _pto_var, _stitch, _pto2mk, _make
 
     _cpfind = os.path.join(dirname, 'cpfind.exe')
     _pto_var = os.path.join(dirname, 'pto_var.exe')
-    _stitch = os.path.join(dirname, 'hugin_stitch_project..exe')
+    _stitch = os.path.join(dirname, 'hugin_stitch_project.exe')
+    _pto2mk = os.path.join(dirname, 'pto2mk.exe')
+    _make = os.path.join(dirname, 'make.exe')
+
+
+def find_hugin(dirname: str='c:/Program Files*/Hugin'):
+    """Finds Hugin, then calls set_hugin_bindir(found dir)."""
+
+    import glob
+
+    exes = glob.glob(os.path.join(dirname, 'bin/hugin.exe'))
+    if not exes:
+        raise RuntimeError('Unable to find hugin.exe in %s' % dirname)
+
+    bindir = os.path.dirname(exes[0])
+    set_hugin_bindir(bindir)
 
 
 def write_header(outfile, project):
-
     print('''# hugin project file
 #hugin_ptoversion 2
 p f2 w8192 h4096 v360 k0 E%f R0 n"TIFF_m c:LZW r:CROP"
@@ -113,6 +129,18 @@ def cpfind(input_filename, output_filename):
                           stderr=subprocess.DEVNULL)
 
 
+def pto2mk(pto_filename) -> str:
+    mk_filename = pto_filename + '.mk'
+    prefix = pto_filename.replace('.pto', '')
+
+    subprocess.check_call([_pto2mk,
+                           '-p', prefix,
+                           '-o', mk_filename,
+                           pto_filename])
+
+    return mk_filename
+
+
 def stitch_project(pto_filename):
     if not pto_filename.endswith('.pto'):
         raise ValueError('pto_filename should end in ".pto"')
@@ -122,3 +150,18 @@ def stitch_project(pto_filename):
     subprocess.check_call([_stitch,
                            '/w', pto_filename,
                            '/o', prefix])
+
+
+def make(pto_filename, make_args=None, on_gpu=False):
+    makefile = pto2mk(pto_filename)
+
+    if make_args is None:
+        make_args = []
+
+    args = [_make, 'ENBLEND=enblend --no-ciecam', '-f', makefile]
+    if on_gpu:
+        args += ['NONA=nona -t 1 -g', '-j4']
+    else:
+        args += ['NONA=nona -t 1', '-j8']
+
+    subprocess.check_call(args + make_args)

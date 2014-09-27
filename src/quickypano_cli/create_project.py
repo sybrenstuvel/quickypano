@@ -29,19 +29,18 @@ def main():
 
     parser = argparse.ArgumentParser(description='Creates a 360 Hugin file.')
     parser.add_argument('filename', metavar='FILENAME', type=str, help='the output filename')
-    parser.add_argument('--hugin-bin', metavar='HUGIN_BINDIR', type=str, help="Hugin's bin directory",
-                        default=r'c:\Program Files\Hugin\bin')
+    parser.add_argument('--hugin', metavar='HUGIN_DIR', type=str, help="Hugin's directory",
+                        default=r'c:\Program Files*\Hugin')
     parser.add_argument('--hdr-offset', type=int, help="Which photo to pick for CPFind",
                         default=0)
 
     args = parser.parse_args()
-    # [r'J:\2014\2014-08-xx Vakantie Kroatie\Haus am Berg panos\1. terras\1_terras.pto'])
     basedir = os.path.dirname(args.filename)
 
     start_time = time.time()
 
     # Set up the Hugin module
-    quickypano.hugin.set_hugin_bindir(args.hugin_bin)
+    quickypano.hugin.find_hugin(args.hugin)
 
     # Create project definition
     photo_glob = os.path.normpath(os.path.join(basedir, 'jpeg/*.jpg'))
@@ -158,6 +157,8 @@ def main():
     end_time = time.time()
     log.info('Total running time: %.1f seconds', end_time - start_time)
 
+    if hasattr(os, 'startfile'):
+        os.startfile(project.hugin_filename)
 
 if __name__ == '__main__':
     main()

@@ -64,6 +64,8 @@ setup(
             "qp_create = quickypano_cli.create_project:main",
             "qp_stitch = quickypano_cli.stitch:main",
             "qp_switch = quickypano_cli.switch_source:main",
+            "qp_pto2mk = quickypano_cli.pto2mk:main",
+            "qp_make = quickypano_cli.make:main",
         ]
     }
 
