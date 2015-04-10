@@ -14,6 +14,17 @@ _stitch = None
 _pto2mk = None
 _make = None
 
+redirect_out = subprocess.DEVNULL
+
+
+def set_debugging(debugging: bool):
+    global redirect_out
+
+    if debugging:
+        redirect_out = None
+    else:
+        redirect_out = subprocess.DEVNULL
+
 
 def set_hugin_bindir(dirname: str):
     global _cpfind, _pto_var, _stitch, _pto2mk, _make
@@ -126,16 +137,16 @@ def pto_var(input_filename, output_filename):
                            input_filename,
                            '-o', output_filename,
                            '--opt', 'y,p,r,v,Eev'],
-                          stdout=subprocess.DEVNULL,
-                          stderr=subprocess.DEVNULL)
+                          stdout=redirect_out,
+                          stderr=redirect_out)
 
 
 def cpfind(input_filename, output_filename):
     subprocess.check_call([_cpfind,
                            input_filename,
                            '-o', output_filename],
-                          stdout=subprocess.DEVNULL,
-                          stderr=subprocess.DEVNULL)
+                          stdout=redirect_out,
+                          stderr=redirect_out)
 
 
 def pto2mk(pto_filename) -> str:

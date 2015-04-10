@@ -20,6 +20,24 @@ import quickypano.project
 import quickypano.hugin
 
 
+class DummyExecutor:
+    def __init__(self, nr_of_threads=None):
+        self.queue = []
+
+    def submit(self, callable, *args):
+        self.queue.append((callable, args))
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if exc_type:
+            return False
+
+        for callable, args in self.queue:
+            callable(*args)
+
+
 def main():
     """Creates a Hugin project."""
 
@@ -33,9 +51,13 @@ def main():
                         default=r'c:\Program Files*\Hugin')
     parser.add_argument('--hdr-offset', type=int, help="Which photo to pick for CPFind",
                         default=0)
+    parser.add_argument('--debug', action='store_true',
+                        help='Run single-threaded for easier debuggin')
 
     args = parser.parse_args()
     basedir = os.path.dirname(args.filename)
+    if args.debug:
+        quickypano.hugin.set_debugging(True)
 
     start_time = time.time()
 
@@ -122,7 +144,12 @@ def main():
 
         quickypano.lowpriority()
 
-        with concurrent.futures.ThreadPoolExecutor(os.cpu_count()) as executor:
+        if args.debug:
+            exec_class = DummyExecutor
+        else:
+            exec_class = concurrent.futures.ThreadPoolExecutor
+
+        with exec_class(os.cpu_count()) as executor:
             sett = project.settings
             find_cpoints_for_ring(sett.ROW_MIDDLE, 0, executor)
             find_cpoints_for_ring(sett.ROW_DOWN, sett.ROW_MIDDLE, executor)
