@@ -71,6 +71,11 @@ class Image:
                 for k, v in img._getexif().items()
                 if k in PIL.ExifTags.TAGS}
 
+        # Determine width/height in pixels too, now that we have the file open anyway.
+        width, height = img.size
+        self.parameters['w'] = width
+        self.parameters['h'] = height
+
         # Source: http://en.wikipedia.org/wiki/Exposure_value
         f_nr = exif['FNumber'][0] / exif['FNumber'][1]
         t = exif['ExposureTime'][0] / exif['ExposureTime'][1]
@@ -84,7 +89,8 @@ class Project:
         self.filename = ''
         self.hugin_filename = ''
         self.photos = []
-        self.stack_size = 1
+        self.stack_size = 1  # Number of photos in each HDR stack; 1 = LDR
+        self.nadir_zenith = False  # Whether separate nadir/zenith shots were included.
         self.settings = settings.DEFAULT_SETTINGS()
         self.control_points = []  # list of control point line strings
         self.average_ev = 0.0  # average exposure value

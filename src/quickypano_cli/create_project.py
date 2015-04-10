@@ -73,21 +73,24 @@ def main():
     project.hugin_filename = args.filename
 
     nr_of_photos = len(project.photos)
-    if nr_of_photos == 84:
+    if nr_of_photos == 210:
+        print('Detected HDR + zenith/nadir; ', end='')
+        project.stack_size = 7
+        project.nadir_zenith = True
+    elif nr_of_photos == 84:
         print('Detected HDR; ', end='')
         project.stack_size = 3
     elif nr_of_photos == 28:
         print('Detected LDR; ', end='')
         project.stack_size = 1
     else:
-        raise ValueError('Unable to handle %i photos, should be 84 or 28' % nr_of_photos)
+        raise ValueError('Unable to handle %i photos, alter source to support.' % nr_of_photos)
 
     print('stack size is %i' % project.stack_size)
     project.move_anchor(args.hdr_offset)
     project.set_variables()
 
     project_lock = threading.RLock()
-
 
     # Find control points
     def find_control_points(idx_0, idx_1):
@@ -133,7 +136,8 @@ def main():
             idx = project.stack_size * stack_idx
             next_idx = project.stack_size * next_stack_idx
 
-            log.debug('Calling find_control_points(%i, %i)', idx + ring_offset, next_idx + ring_offset)
+            log.debug('Calling find_control_points(%i, %i)', idx + ring_offset,
+                      next_idx + ring_offset)
             executor.submit(find_control_points,
                             idx + ring_offset, next_idx + ring_offset)
 
@@ -151,9 +155,9 @@ def main():
 
         with exec_class(os.cpu_count()) as executor:
             sett = project.settings
-            find_cpoints_for_ring(sett.ROW_MIDDLE, 0, executor)
-            find_cpoints_for_ring(sett.ROW_DOWN, sett.ROW_MIDDLE, executor)
-            find_cpoints_for_ring(sett.ROW_UP, sett.ROW_DOWN + sett.ROW_MIDDLE, executor)
+            find_cpoints_for_ring(sett.ROW_MIDDLE, sett.start_offset('MIDDLE'), executor)
+            find_cpoints_for_ring(sett.ROW_DOWN, sett.start_offset('DOWN'), executor)
+            find_cpoints_for_ring(sett.ROW_UP, sett.start_offset('UP'), executor)
 
             # ## Attach rings
             # From start of middle to start of the other rings
@@ -169,6 +173,8 @@ def main():
                             down_start_idx + ssize * sett.ROW_DOWN // 2)
             executor.submit(find_control_points, row_middle_mid,
                             up_start_idx + ssize * sett.ROW_UP // 2)
+
+            # TODO: zenith & nadir shots
 
         sys.stderr.flush()
         sys.stdout.flush()
@@ -186,6 +192,7 @@ def main():
 
     if hasattr(os, 'startfile'):
         os.startfile(project.hugin_filename)
+
 
 if __name__ == '__main__':
     main()
