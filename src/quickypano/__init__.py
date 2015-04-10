@@ -8,11 +8,10 @@ IDLE_PRIORITY_CLASS = 0x00000040
 NORMAL_PRIORITY_CLASS = 0x00000020
 PROCESS_SET_INFORMATION = 0x0200
 
-kernel32 = ctypes.windll.kernel32
-
 
 def _win_set_priority_class(priority_class):
     pid = os.getpid()
+    kernel32 = ctypes.windll.kernel32
     handle = kernel32.OpenProcess(PROCESS_SET_INFORMATION, True, pid)
     kernel32.SetPriorityClass(handle, priority_class)
 

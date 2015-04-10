@@ -5,6 +5,8 @@ Hugin file support
 import os
 import os.path
 import subprocess
+import sys
+import distutils.spawn
 
 _cpfind = None
 _pto_var = None
@@ -16,11 +18,13 @@ _make = None
 def set_hugin_bindir(dirname: str):
     global _cpfind, _pto_var, _stitch, _pto2mk, _make
 
-    _cpfind = os.path.join(dirname, 'cpfind.exe')
-    _pto_var = os.path.join(dirname, 'pto_var.exe')
-    _stitch = os.path.join(dirname, 'hugin_stitch_project.exe')
-    _pto2mk = os.path.join(dirname, 'pto2mk.exe')
-    _make = os.path.join(dirname, 'make.exe')
+    ext = '.exe' if sys.platform == 'win32' else ''
+
+    _cpfind = os.path.join(dirname, 'cpfind' + ext)
+    _pto_var = os.path.join(dirname, 'pto_var' + ext)
+    _stitch = os.path.join(dirname, 'hugin_stitch_project' + ext)
+    _pto2mk = os.path.join(dirname, 'pto2mk' + ext)
+    _make = os.path.join(dirname, 'make' + ext)
 
 
 def find_hugin(dirname: str='c:/Program Files*/Hugin'):
@@ -28,11 +32,16 @@ def find_hugin(dirname: str='c:/Program Files*/Hugin'):
 
     import glob
 
-    exes = glob.glob(os.path.join(dirname, 'bin/hugin.exe'))
-    if not exes:
-        raise RuntimeError('Unable to find hugin.exe in %s' % dirname)
+    if sys.platform == 'win32':
+        exes = glob.glob(os.path.join(dirname, 'bin/hugin.exe'))
+        if not exes:
+            raise RuntimeError('Unable to find hugin.exe in %s' % dirname)
 
-    bindir = os.path.dirname(exes[0])
+        bindir = os.path.dirname(exes[0])
+    else:
+        exename = distutils.spawn.find_executable('hugin')
+        bindir = os.path.dirname(exename)
+
     set_hugin_bindir(bindir)
 
 
