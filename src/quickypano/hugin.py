@@ -73,7 +73,10 @@ def write_images(outfile, project):
     print('# image lines', file=outfile)
 
     for idx, image in enumerate(project.photos):
+        disabled = '' if idx % project.stack_size == 0 else ' disabled'
+
         params = ['%s%s' % (key, image.parameters[key]) for key in IMAGE_PARAM_ORDER]
+        print('#-hugin  cropFactor=1%s' % disabled, file=outfile)
         print('i %s n"%s"' % (' '.join(params), image.filename), file=outfile)
 
 
