@@ -21,13 +21,13 @@ def read(*names, **kwargs):
 setup(
     name="quickypano",
     version="0.1.0",
-    license="BSD",
+    license="GPL",
     description="Simple panorama project creator for Hugin, aimed at 360/180 degree panoramas",
     long_description="%s\n%s" % (read("README.rst"),
                                  re.sub(":obj:`~?(.*?)`", r"``\1``", read("CHANGELOG.rst"))),
     author="Sybren A. Stüvel",
     author_email="sybren@stuvel.eu",
-    url="https://bitbucket.com/sybren/quickypano",
+    url="https://github.com/sybrenstuvel/quickypano",
     packages=find_packages('.'),
     package_dir={'': 'src'},
     # py_modules=[splitext(basename(i))[0] for i in glob.glob("src/*.py")],
@@ -38,7 +38,7 @@ setup(
         "Development Status :: 3 - Alpha",
         # "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
-        "License :: OSI Approved :: BSD License",
+        "License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)",
         "Operating System :: Unix",
         "Operating System :: POSIX",
         "Operating System :: Microsoft :: Windows",
@@ -54,7 +54,7 @@ setup(
     #     # eg: "keyword1", "keyword2", "keyword3",
     # ],
     install_requires=[
-        read('requirements.txt').split('\n')  # eg: "aspectlib==1.1.1", "six>=1.7",
+        read('requirements.txt').strip().split('\n')  # eg: "aspectlib==1.1.1", "six>=1.7",
     ],
     # extras_require={
     #     # eg: 'rst': ["docutils>=0.11"],
