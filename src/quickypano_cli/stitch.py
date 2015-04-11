@@ -3,6 +3,7 @@
 import glob
 import subprocess
 import time
+from quickypano import hugin
 
 
 def main():
@@ -10,23 +11,12 @@ def main():
 
     start_time = time.time()
 
-    exes = glob.glob('c:/Program Files*/Hugin/bin/hugin_stitch_project.exe')
-    if not exes:
-        raise SystemExit('Unable to find hugin_stitch_project.exe')
-    exe = exes[0]
-
     ptos = glob.glob('*.pto')
     if len(ptos) != 1:
         raise SystemExit("Found %i PTO files, don't know what to do!" % len(ptos))
 
     pto = ptos[0]
-    prefix = pto.replace('.pto', '')
-    assert pto != prefix
-
-    subprocess.check_call([exe,
-        '/w', pto,
-        '/o', prefix
-    ])
+    hugin.stitch_project(pto)
 
     end_time = time.time()
 
