@@ -100,7 +100,7 @@ class Project:
         return self.stack_size > 1
 
     def load_photos(self, filenames):
-        self.photos = [Image(filename) for filename in filenames]
+        self.photos = [Image(filename) for filename in sorted(filenames)]
 
     def move_anchor(self, anchor_idx):
         """Moves the N'th image to the front of each stack."""
