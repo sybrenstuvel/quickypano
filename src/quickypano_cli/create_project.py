@@ -51,8 +51,10 @@ def main():
                         default=r'c:\Program Files*\Hugin')
     parser.add_argument('--hdr-offset', type=int, help="Which photo to pick for CPFind",
                         default=0)
-    parser.add_argument('--debug', action='store_true',
+    parser.add_argument('--debug', action='store_true', default=False,
                         help='Run single-threaded for easier debuggin')
+    parser.add_argument('--no-cp', action='store_true', default=False,
+                        help="Don't find control points")
 
     args = parser.parse_args()
     basedir = os.path.dirname(args.filename)
@@ -182,7 +184,8 @@ def main():
 
         log.info('Found a total of %i control points', len(project.control_points))
 
-    find_all_control_points()
+    if not args.no_cp:
+        find_all_control_points()
 
     # Create Hugin project file
     project.create_hugin_project()
