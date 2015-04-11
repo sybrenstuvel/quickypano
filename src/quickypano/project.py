@@ -117,27 +117,52 @@ class Project:
             self.photos[stack_slice] = [anchor] + stack
 
     def set_variables(self):
+        # TODO: make nice row -> position mapping for this.
+        start_middle = self.settings.start_offset('MIDDLE')
+        next_middle = self.settings.next_offset('MIDDLE')
+        start_down = self.settings.start_offset('DOWN')
+        next_down = self.settings.next_offset('DOWN')
+        start_up = self.settings.start_offset('UP')
+        next_up = self.settings.next_offset('UP')
+        start_zenith = self.settings.start_offset('ZENITH')
+        next_zenith = self.settings.next_offset('ZENITH')
+        start_nadir = self.settings.start_offset('NADIR')
+        next_nadir = self.settings.next_offset('NADIR')
+
+        self.photos[0].parameters['v'] = self.settings.VERTICAL_FOV
 
         for idx, image in enumerate(self.photos):
             stack_idx = idx // self.stack_size
             stack_anchor = stack_idx * self.stack_size  # Always the first image in the stack
 
-            # TODO: get order from settings
-            if stack_idx < self.settings.ROW_MIDDLE:
+            if start_middle <= stack_idx < next_middle:
                 # Middle row
                 idx_in_row = stack_idx
                 row_size = self.settings.ROW_MIDDLE
                 pitch = 0
-            elif stack_idx < self.settings.ROW_MIDDLE + self.settings.ROW_DOWN:
+            elif start_down <= stack_idx < next_down:
                 # Down row
-                idx_in_row = stack_idx - self.settings.ROW_MIDDLE
+                idx_in_row = stack_idx - start_down
                 row_size = self.settings.ROW_DOWN
                 pitch = -45
-            else:
+            elif start_up <= stack_idx <= next_up:
                 # Up row
-                idx_in_row = stack_idx - self.settings.ROW_MIDDLE - self.settings.ROW_DOWN
+                idx_in_row = stack_idx - start_up
                 row_size = self.settings.ROW_UP
                 pitch = 45
+            elif start_zenith <= stack_idx <= next_zenith:
+                idx_in_row = stack_idx - start_zenith
+                row_size = self.settings.ROW_ZENITH
+                pitch = 90
+            elif start_nadir <= stack_idx <= next_nadir:
+                idx_in_row = stack_idx - start_nadir
+                row_size = self.settings.ROW_NADIR
+                pitch = -90
+            else:
+                log.warn('Unknown what to do with photo on stack index %i', stack_idx)
+                idx_in_row = 0
+                row_size = 1
+                pitch = 0
 
             yaw = 360 * idx_in_row / row_size
             variables = {'y': yaw, 'p': pitch, 'r': 0.0}
