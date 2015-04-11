@@ -3,3 +3,4 @@ syntax:glob
 __pycache__
 *.pyc
 .*.swp
+quickypano.egg-info
