@@ -67,11 +67,12 @@ def main():
     quickypano.hugin.find_hugin(args.hugin)
 
     # Create project definition
-    photo_glob = os.path.normpath(os.path.join(basedir, 'jpeg/*.jpg'))
-    print('Getting photos from %s' % photo_glob)
+    photo_glob_lc = os.path.normpath(os.path.join(basedir, 'jpeg/*.jpg'))
+    photo_glob_uc = os.path.normpath(os.path.join(basedir, 'jpeg/*.JPG'))
+    print('Getting photos from %s' % photo_glob_lc)
 
     project = quickypano.project.Project()
-    project.load_photos(glob.glob(photo_glob))
+    project.load_photos(glob.glob(photo_glob_lc) + glob.glob(photo_glob_uc))
     project.hugin_filename = args.filename
 
     nr_of_photos = len(project.photos)
@@ -79,9 +80,26 @@ def main():
         print('Detected HDR + zenith/nadir; ', end='')
         project.stack_size = 7
         project.nadir_zenith = True
+    if nr_of_photos == 266:
+        print('Detected HDR + zenith/nadir; ', end='')
+        project.stack_size = 7
+        project.nadir_zenith = True
+    elif nr_of_photos == 93:
+        print('Detected HDR; ', end='')
+        project.stack_size = 3
+    elif nr_of_photos == 155:
+        print('Detected HDR; ', end='')
+        project.stack_size = 5
+    elif nr_of_photos == 114:
+        print('Detected HDR + z/n; ', end='')
+        project.nadir_zenith = True
+        project.stack_size = 3
     elif nr_of_photos == 84:
         print('Detected HDR; ', end='')
         project.stack_size = 3
+    elif nr_of_photos == 37:
+        print('Detected LDR; ', end='')
+        project.stack_size = 1
     elif nr_of_photos == 28:
         print('Detected LDR; ', end='')
         project.stack_size = 1

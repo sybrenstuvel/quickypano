@@ -127,7 +127,46 @@ class SybrenLX100(AbstractSettings):
     VERTICAL_FOV = 53.2190900384409  # 24mm, i.e. zoomed out fully
 
 
-DEFAULT_SETTINGS = SybrenLX100
+class SybrenLX100DoubleNadir(SybrenLX100):
+    ROW_NADIR = 2
+
+    ORDER = ['MIDDLE', 'UP', 'DOWN', 'NADIR', 'ZENITH']
+
+
+class SybrenLX100NoNadir(SybrenLX100):
+    ROW_NADIR = 0
+
+    ORDER = ['MIDDLE', 'UP', 'DOWN', 'ZENITH']
+
+
+class SybrenLX100SmallSteps(SybrenLX100):
+    ROW_UP = 12
+    ROW_MIDDLE = 12
+    ROW_DOWN = 12
+    ROW_ZENITH = 1
+    ROW_NADIR = 0
+
+    ORDER = ['MIDDLE', 'DOWN', 'UP', 'ZENITH']
+
+
+class SybrenLX100SmallStepsNadir(SybrenLX100):
+    ROW_UP = 12
+    ROW_MIDDLE = 12
+    ROW_DOWN = 12
+    ROW_ZENITH = 1
+    ROW_NADIR = 1
+
+    ORDER = ['MIDDLE', 'UP', 'DOWN', 'ZENITH', 'NADIR']
+
+
+DEFAULT_SETTINGS = SybrenLX100SmallStepsNadir
+
+
+# def iter_settings():
+#     """Generator, yields all AbstractSettings subclasses."""
+#
+
+
 
 if __name__ == '__main__':
     import doctest
