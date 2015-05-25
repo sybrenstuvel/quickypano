@@ -51,6 +51,8 @@ def find_hugin(dirname: str='c:/Program Files*/Hugin'):
         bindir = os.path.dirname(exes[0])
     else:
         exename = distutils.spawn.find_executable('hugin')
+        if not exename:
+            raise RuntimeError('Unable to find Hugin on $PATH')
         bindir = os.path.dirname(exename)
 
     set_hugin_bindir(bindir)
