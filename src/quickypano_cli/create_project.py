@@ -42,7 +42,7 @@ def main():
     """Creates a Hugin project."""
 
     logging.basicConfig(level=logging.INFO)
-    log = logging.getLogger('simpleflops')
+    log = logging.getLogger('quickypano')
     log.setLevel(logging.INFO)
 
     parser = argparse.ArgumentParser(description='Creates a 360 Hugin file.')
