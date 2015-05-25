@@ -18,7 +18,7 @@ def main():
                         default=r'c:\Program Files*\Hugin')
     parser.add_argument('--gpu', help="Run Nona on the GPU",
                         default=False, action='store_true')
-    parser.add_argument('filename', metavar='PTO', type=str,
+    parser.add_argument('-f', '--filename', metavar='PTO', type=str,
                         nargs='?',
                         help='The PTO filename. Optional there is only one PTO file.')
     parser.add_argument('extra_args', type=str, help='Extra Make arguments', nargs='*')
