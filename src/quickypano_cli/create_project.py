@@ -76,35 +76,17 @@ def main():
     project.hugin_filename = args.filename
 
     nr_of_photos = len(project.photos)
-    if nr_of_photos == 210:
-        print('Detected HDR + zenith/nadir; ', end='')
-        project.stack_size = 7
-        project.nadir_zenith = True
-    if nr_of_photos == 266:
-        print('Detected HDR + zenith/nadir; ', end='')
-        project.stack_size = 7
-        project.nadir_zenith = True
-    elif nr_of_photos == 93:
-        print('Detected HDR; ', end='')
-        project.stack_size = 3
-    elif nr_of_photos == 155:
-        print('Detected HDR; ', end='')
-        project.stack_size = 5
-    elif nr_of_photos == 114:
-        print('Detected HDR + z/n; ', end='')
-        project.nadir_zenith = True
-        project.stack_size = 3
-    elif nr_of_photos == 84:
-        print('Detected HDR; ', end='')
-        project.stack_size = 3
-    elif nr_of_photos == 37:
-        print('Detected LDR; ', end='')
-        project.stack_size = 1
-    elif nr_of_photos == 28:
-        print('Detected LDR; ', end='')
-        project.stack_size = 1
+    for stack_size in (7, 5, 3, 1):
+        if nr_of_photos % stack_size == 0:
+            project.stack_size = stack_size
+            break
     else:
         raise ValueError('Unable to handle %i photos, alter source to support.' % nr_of_photos)
+
+    if project.stack_size > 1:
+        print('Detected HDR; ', end='')
+    else:
+        print('Detected LDR; ', end='')
 
     print('stack size is %i' % project.stack_size)
     project.move_anchor(args.hdr_offset)

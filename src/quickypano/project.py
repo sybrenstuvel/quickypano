@@ -83,14 +83,12 @@ class Image:
 
         self.parameters['Eev'] = ev
 
-
 class Project:
     def __init__(self):
         self.filename = ''
         self.hugin_filename = ''
         self.photos = []
         self.stack_size = 1  # Number of photos in each HDR stack; 1 = LDR
-        self.nadir_zenith = False  # Whether separate nadir/zenith shots were included.
         self.settings = settings.DEFAULT_SETTINGS()
         self.control_points = []  # list of control point line strings
         self.average_ev = 0.0  # average exposure value
