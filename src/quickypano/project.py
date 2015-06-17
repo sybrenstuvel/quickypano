@@ -2,6 +2,7 @@
 Data model for projects.
 """
 
+import copy
 import json
 import os.path
 import logging
@@ -87,7 +88,7 @@ class Project:
     def __init__(self):
         self.filename = ''
         self.hugin_filename = ''
-        self.photos = []
+        self.photos = []  # list of Image objects
         self.stack_size = 1  # Number of photos in each HDR stack; 1 = LDR
         self.settings = settings.DEFAULT_SETTINGS()
         self.control_points = []  # list of control point line strings
@@ -225,7 +226,7 @@ class Project:
         clone = Project()
         clone.filename = self.filename
         clone.hugin_filename = self.hugin_filename
-        clone.photos = [self.photos[i] for i in indices]
+        clone.photos = [copy.deepcopy(self.photos[i]) for i in indices]
         clone.stack_size = self.stack_size
         clone.settings = self.settings
 
