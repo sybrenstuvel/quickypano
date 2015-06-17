@@ -148,6 +148,20 @@ def main():
         os.unlink(cpfind_inname)
         os.unlink(cpfind_outname)
 
+    def task_done(future):
+        exception = future.exception()
+        if exception is None:
+            return
+
+        import traceback
+
+        lines = traceback.format_exception_only(type(exception), exception)
+        log.error('Exception trying to find control points:\n%s', '\n'.join(lines))
+
+    def submit_task(executor, idx0, idx1):
+        future = executor.submit(find_control_points, idx0, idx1)
+        future.add_done_callback(task_done)
+
     def find_cpoints_for_ring(ring_size, ring_offset, executor):
         ring_offset *= project.stack_size
 
@@ -158,8 +172,7 @@ def main():
 
             log.debug('Calling find_control_points(%i, %i)', idx + ring_offset,
                       next_idx + ring_offset)
-            executor.submit(find_control_points,
-                            idx + ring_offset, next_idx + ring_offset)
+            submit_task(executor, idx + ring_offset, next_idx + ring_offset)
 
     def find_all_control_points():
         # Create control points for each ring
@@ -184,15 +197,13 @@ def main():
             ssize = project.stack_size
             down_start_idx = sett.ROW_MIDDLE * ssize
             up_start_idx = (sett.ROW_MIDDLE + sett.ROW_DOWN) * ssize
-            executor.submit(find_control_points, 0, down_start_idx)
-            executor.submit(find_control_points, 0, up_start_idx)
+            submit_task(executor, 0, down_start_idx)
+            submit_task(executor, 0, up_start_idx)
 
             # From mid of middle to mid of the other rings
             row_middle_mid = ssize * sett.ROW_MIDDLE // 2
-            executor.submit(find_control_points, row_middle_mid,
-                            down_start_idx + ssize * sett.ROW_DOWN // 2)
-            executor.submit(find_control_points, row_middle_mid,
-                            up_start_idx + ssize * sett.ROW_UP // 2)
+            submit_task(executor, row_middle_mid, down_start_idx + ssize * sett.ROW_DOWN // 2)
+            submit_task(executor, row_middle_mid, up_start_idx + ssize * sett.ROW_UP // 2)
 
             # TODO: zenith & nadir shots
 
