@@ -22,7 +22,7 @@ def main():
 
     print(50 * '-')
     duration = end_time - start_time
-    str_duration = time.strftime('%H:%M:%S', time.localtime(duration))
+    str_duration = time.strftime('%H:%M:%S', time.gmtime(duration))
     print('Stitching done! Duration: %s' % str_duration)
 
 
