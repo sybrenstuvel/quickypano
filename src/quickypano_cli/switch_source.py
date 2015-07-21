@@ -34,10 +34,7 @@ def main():
     print('Switching %s to %s' % (args.filename, args.filetype))
     fname_re = re.compile(r'n"\w+[/\\](\w+)\.\w+"')
     ftype = FTYPES[args.filetype]
-    sep = os.sep
-    if sep == '\\':
-        sep = '\\\\'  # Escape for regexps
-    target = r'n"%s%s\1.%s"' % (ftype['path'], sep, ftype['extension'])
+    target = r'n"%s/\1.%s"' % (ftype['path'], ftype['extension'])
 
     basename = os.path.dirname(args.filename)
     outname = os.path.join(basename, 'switch_source-%i.pto' % os.getpid())

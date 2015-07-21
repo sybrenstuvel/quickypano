@@ -68,11 +68,14 @@ def main():
 
     # Create project definition
     photo_glob_lc = os.path.normpath(os.path.join(basedir, 'jpeg/*.jpg'))
-    photo_glob_uc = os.path.normpath(os.path.join(basedir, 'jpeg/*.JPG'))
-    print('Getting photos from %s' % photo_glob_lc)
+    if sys.platform == 'win32':
+        photo_globs = glob.glob(photo_glob_lc).replace('\\', '/')
+    else:
+        photo_glob_uc = os.path.normpath(os.path.join(basedir, 'jpeg/*.JPG'))
+        photo_globs = glob.glob(photo_glob_lc) + glob.glob(photo_glob_uc)
 
     project = quickypano.project.Project()
-    project.load_photos(glob.glob(photo_glob_lc) + glob.glob(photo_glob_uc))
+    project.load_photos(photo_globs)
     project.hugin_filename = args.filename
 
     nr_of_photos = len(project.photos)
