@@ -149,7 +149,7 @@ class SybrenLX100SmallSteps(SybrenLX100):
     ORDER = ['MIDDLE', 'DOWN', 'UP', 'ZENITH']
 
 
-class SybrenLX100SmallStepsNadir(SybrenLX100):
+class SybrenLX100SmallStepsNadirZenith(SybrenLX100):
     ROW_UP = 12
     ROW_MIDDLE = 12
     ROW_DOWN = 12
@@ -159,7 +159,17 @@ class SybrenLX100SmallStepsNadir(SybrenLX100):
     ORDER = ['MIDDLE', 'UP', 'DOWN', 'ZENITH', 'NADIR']
 
 
-DEFAULT_SETTINGS = SybrenLX100SmallStepsNadir
+class SybrenLX100SmallStepsZenith(SybrenLX100):
+    ROW_UP = 12
+    ROW_MIDDLE = 12
+    ROW_DOWN = 12
+    ROW_ZENITH = 1
+    ROW_NADIR = 0
+
+    ORDER = ['MIDDLE', 'DOWN', 'UP', 'ZENITH', 'NADIR']
+
+
+DEFAULT_SETTINGS = SybrenLX100SmallStepsZenith
 
 
 # def iter_settings():
