@@ -29,6 +29,8 @@ def set_debugging(debugging: bool):
 def set_hugin_bindir(dirname: str):
     global _cpfind, _pto_var, _stitch, _pto2mk, _make
 
+    print('Hugin found in %r' % dirname)
+
     ext = '.exe' if sys.platform == 'win32' else ''
 
     _cpfind = os.path.join(dirname, 'cpfind' + ext)
@@ -50,7 +52,7 @@ def find_hugin(dirname: str='c:/Program Files*/Hugin'):
 
         bindir = os.path.dirname(exes[0])
     else:
-        exename = distutils.spawn.find_executable('hugin')
+        exename = distutils.spawn.find_executable('hugin_stitch_project')
         if not exename:
             raise RuntimeError('Unable to find Hugin on $PATH')
         bindir = os.path.dirname(exename)
@@ -170,11 +172,14 @@ def stitch_project(pto_filename):
     if not pto_filename.endswith('.pto'):
         raise ValueError('pto_filename should end in ".pto"')
 
+    assert _stitch is not None, 'hugin_stitch_project executable not found'
+
     prefix = pto_filename.replace('.pto', '')
     # hugin_stitch_project.exe /w 1_terras.pto /o 1_terras_fused
+
     subprocess.check_call([_stitch,
-                           '/w', pto_filename,
-                           '/o', prefix])
+                           '-w', pto_filename,
+                           '-o', prefix])
 
 
 def make(pto_filename, make_args=None, on_gpu=False):
