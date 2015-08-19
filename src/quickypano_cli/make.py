@@ -20,7 +20,7 @@ def main():
                         default=False, action='store_true')
     parser.add_argument('-f', '--filename', metavar='PTO', type=str,
                         nargs='?',
-                        help='The PTO filename. Optional there is only one PTO file.')
+                        help='The PTO filename. Optional if there is only one PTO file.')
     parser.add_argument('extra_args', type=str, help='Extra Make arguments', nargs='*')
     args = parser.parse_args()
 
