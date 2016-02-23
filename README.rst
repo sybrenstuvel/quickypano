@@ -2,8 +2,8 @@
 QuickyPano
 ===============================
 
-Simple panorama project creator for Hugin, aimed at 360/180 degree
-panoramas
+Simple (well, for me) panorama project creator for Hugin, aimed at
+360/180 degree panoramas
 
 * Free software: GPL license v2.0
 
