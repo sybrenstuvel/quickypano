@@ -9,7 +9,7 @@ import quickypano.hugin
 def main():
     """Stitches a single project."""
 
-    parser = argparse.ArgumentParser(description='Switches a Hugin file to different input files.')
+    parser = argparse.ArgumentParser(description='Stitches a single Hugin project.')
     parser.add_argument('--hugin', metavar='HUGIN_DIR', type=str, help="Hugin's directory", nargs='?')
     parser.add_argument('filename', metavar='FILENAME', type=str, help='the PTO filename', nargs='?')
 
