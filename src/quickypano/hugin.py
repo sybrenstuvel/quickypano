@@ -107,7 +107,7 @@ v
 #hugin_blender enblend
 #hugin_remapper nona
 #hugin_enblendOptions --no-ciecam
-#hugin_enfuseOptions
+#hugin_enfuseOptions -d 16
 #hugin_hdrmergeOptions -m avg -c
 #hugin_outputLDRBlended %(hugin_outputLDRBlended)s
 #hugin_outputLDRLayers false
