@@ -14,6 +14,7 @@ import threading
 import concurrent.futures
 import logging
 import sys
+import math
 
 import quickypano
 import quickypano.project
@@ -49,8 +50,9 @@ def main():
     parser.add_argument('filename', metavar='FILENAME', type=str, help='the output filename')
     parser.add_argument('--hugin', metavar='HUGIN_DIR', type=str, help="Hugin's directory",
                         default=r'c:\Program Files*\Hugin')
-    parser.add_argument('--hdr-offset', type=int, help="Which photo to pick for CPFind",
-                        default=0)
+    parser.add_argument('-o', '--hdr-offset', type=int,
+                        help="Which photo to pick for CPFind (-1 = middle of stack)",
+                        default=-1)
     parser.add_argument('--debug', action='store_true', default=False,
                         help='Run single-threaded for easier debuggin')
     parser.add_argument('--no-cp', action='store_true', default=False,
@@ -78,6 +80,7 @@ def main():
     project.load_photos(photo_fnames)
     project.hugin_filename = args.filename
 
+    # Detect HDR stack size.
     nr_of_photos = len(project.photos)
     for stack_size in (7, 5, 3, 1):
         if nr_of_photos % stack_size == 0:
@@ -90,8 +93,13 @@ def main():
         print('Detected HDR; ', end='')
     else:
         print('Detected LDR; ', end='')
-
     print('stack size is %i' % project.stack_size)
+
+    # Choose HDR offset.
+    if args.hdr_offset < 0:
+        args.hdr_offset = math.floor(project.stack_size / 2)
+    print('Using HDR offset %i' % args.hdr_offset)
+
     project.move_anchor(args.hdr_offset)
     project.set_variables()
 
