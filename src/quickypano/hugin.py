@@ -106,7 +106,7 @@ v
 #hugin_optimizeReferenceImage 0
 #hugin_blender enblend
 #hugin_remapper nona
-#hugin_enblendOptions --no-ciecam
+#hugin_enblendOptions --blend-colorspace=identity --wrap=horizontal
 #hugin_enfuseOptions -d 16
 #hugin_hdrmergeOptions -m avg -c
 #hugin_outputLDRBlended %(hugin_outputLDRBlended)s
@@ -188,7 +188,7 @@ def make(pto_filename, make_args=None, on_gpu=False):
     if make_args is None:
         make_args = []
 
-    args = [_make, 'ENBLEND=enblend --no-ciecam', '-f', makefile]
+    args = [_make, 'ENBLEND=enblend --blend-colorspace=identity', '-f', makefile]
     if on_gpu:
         args += ['NONA=nona -t 1 -g', '-j4']
     else:
