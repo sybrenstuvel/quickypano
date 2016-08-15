@@ -14,7 +14,7 @@ from quickypano import huginpto
 
 SourceImage = collections.namedtuple(
     'SourceImage',
-    ('ev', 'fname', 'sspeed', 'exposure', 'aperture', 'fnumber', 'iso'))
+    ('ev', 'fname', 'sspeed', 'exposure', 'aperture', 'fnumber', 'iso', 'exposure_bias'))
 TagImage = collections.namedtuple('TagImage', ('source_index', 'darkened_by', 'fname'))
 tag_image_re = re.compile(r'_(?P<source_index>[0-9]+)(-(?P<darkened_by>[0-9]))?\.[a-z]+$')
 
@@ -61,6 +61,7 @@ def parse_pto(pto_fname: Path) -> [SourceImage]:
         # Parse EXIF of source image
         with fname.open('rb') as infile:
             exif = exifread.process_file(infile, details=False)
+        # pprint(sorted(exif.keys()))
 
         simg = SourceImage(
             ev=img['Eev'],
@@ -70,6 +71,7 @@ def parse_pto(pto_fname: Path) -> [SourceImage]:
             aperture=exif['EXIF ApertureValue'].values[0],
             fnumber=exif['EXIF FNumber'].values[0],
             iso=exif['EXIF ISOSpeedRatings'].values[0],
+            exposure_bias=exif['EXIF ExposureBiasValue'].values[0],
         )
         source_images.append(simg)
 
@@ -109,22 +111,26 @@ def main():
 
         sspeed = simg.sspeed
         exposure = simg.exposure
+        exposure_bias = (simg.exposure_bias.num / simg.exposure_bias.den)
         if timg.darkened_by:
             # We have to update the shutter speed & exposure values.
             # sspeed is in logarithmic scale, so we can just add the denominator.
             sspeed = exifread.utils.Ratio(sspeed.num + timg.darkened_by * sspeed.den, sspeed.den)
             # exposure is in linear scale.
             exposure = exifread.utils.Ratio(exposure.num, exposure.den * 2 ** timg.darkened_by)
+            exposure_bias -= timg.darkened_by
 
         # print(timg, sspeed, exposure, simg.iso, simg.fnumber)
 
         # Update the image's EXIF information
         cmd = ['exiftool',
+               '-overwrite_original_in_place',
                '-ShutterSpeedValue=%s' % sspeed,
                '-ExposureTime=%s' % exposure,
                '-ApertureValue=%s' % simg.fnumber,  # exiftool converts to APEX itself.
                '-FNumber=%s' % simg.fnumber,
                '-ISO=%s' % simg.iso,
+               '-ExposureCompensation=%i' % exposure_bias,
                str(timg.fname),
                ]
         print(cmd)
