@@ -66,6 +66,7 @@ setup(
             "qp_switch = quickypano_cli.switch_source:main",
             "qp_pto2mk = quickypano_cli.pto2mk:main",
             "qp_make = quickypano_cli.make:main",
+            "qp_exif = quickypano_cli.set_exif:main",
         ]
     }
 
