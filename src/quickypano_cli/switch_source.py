@@ -71,8 +71,8 @@ def main():
         os.unlink(args.filename)
         os.rename(outname, args.filename)
 
-        print('Creating %s.mk' % args.filename)
-        quickypano.hugin.pto2mk(args.filename)
+        # print('Creating %s.mk' % args.filename)
+        # quickypano.hugin.pto2mk(args.filename)
 
     print('Done!')
 
