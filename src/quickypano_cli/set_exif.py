@@ -19,16 +19,19 @@ TagImage = collections.namedtuple('TagImage', ('source_index', 'darkened_by', 'f
 tag_image_re = re.compile(r'_(?P<source_index>[0-9]+)(-(?P<darkened_by>[0-9]))?\.[a-z]+$')
 
 
-def parse_cli() -> (Path, [Path]):
+def parse_cli() -> (Path, [Path], int):
     """Parses the CLI arguments.
 
-    :returns: (PTO filename, [file to tag, file to tag, ...])
+    :returns: (PTO filename, [file to tag, file to tag, ...], ev-offset)
     """
 
     parser = argparse.ArgumentParser(description='Sets EXIF data on output .')
     parser.add_argument('-f', '--filename', metavar='PTO', type=str,
                         nargs='?',
                         help='The PTO filename. Optional if there is only one PTO file.')
+    parser.add_argument('-e', '--ev-offset', metavar='EV', type=int,
+                        nargs='?',
+                        help='EV-offset for all photos; positive numbers result in darker HDRs.')
     parser.add_argument('files_to_tag', type=str, help='Files to change the EXIF of.', nargs='+')
     args = parser.parse_args()
 
@@ -43,7 +46,7 @@ def parse_cli() -> (Path, [Path]):
     if not pto.exists():
         raise SystemExit('File %s does not exist.' % pto)
 
-    return pto, [Path(fname) for fname in args.files_to_tag]
+    return pto, [Path(fname) for fname in args.files_to_tag], args.ev_offset or 0
 
 
 def parse_pto(pto_fname: Path) -> [SourceImage]:
@@ -98,7 +101,7 @@ def find_tag_images(files_to_tag: [Path]) -> [TagImage]:
 
 
 def main():
-    pto, files_to_tag = parse_cli()
+    pto, files_to_tag, ev_offset = parse_cli()
 
     source_images = parse_pto(pto)
     tag_images = find_tag_images(files_to_tag)
@@ -112,15 +115,14 @@ def main():
         sspeed = simg.sspeed
         exposure = simg.exposure
         exposure_bias = (simg.exposure_bias.num / simg.exposure_bias.den)
-        if timg.darkened_by:
+        if timg.darkened_by or ev_offset:
+            offset = timg.darkened_by - ev_offset
             # We have to update the shutter speed & exposure values.
             # sspeed is in logarithmic scale, so we can just add the denominator.
-            sspeed = exifread.utils.Ratio(sspeed.num + timg.darkened_by * sspeed.den, sspeed.den)
+            sspeed = exifread.utils.Ratio(sspeed.num + offset * sspeed.den, sspeed.den)
             # exposure is in linear scale.
-            exposure = exifread.utils.Ratio(exposure.num, exposure.den * 2 ** timg.darkened_by)
-            exposure_bias -= timg.darkened_by
-
-        # print(timg, sspeed, exposure, simg.iso, simg.fnumber)
+            exposure = exifread.utils.Ratio(exposure.num, exposure.den * 2 ** offset)
+            exposure_bias -= offset
 
         # Update the image's EXIF information
         cmd = ['exiftool',
