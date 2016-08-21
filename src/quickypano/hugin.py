@@ -106,7 +106,7 @@ v
 #hugin_optimizeReferenceImage 0
 #hugin_blender enblend
 #hugin_remapper nona
-#hugin_enblendOptions --blend-colorspace=identity --wrap=horizontal
+#hugin_enblendOptions --blend-colorspace=identity --wrap=horizontal --fine-mask --no-optimize
 #hugin_enfuseOptions -d 16
 #hugin_hdrmergeOptions -m avg -c
 #hugin_outputLDRBlended %(hugin_outputLDRBlended)s
