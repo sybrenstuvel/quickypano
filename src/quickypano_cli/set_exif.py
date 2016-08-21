@@ -126,7 +126,7 @@ def main():
 
         # Update the image's EXIF information
         cmd = ['exiftool',
-               '-overwrite_original_in_place',
+               '-overwrite_original',
                '-ShutterSpeedValue=%s' % sspeed,
                '-ExposureTime=%s' % exposure,
                '-ApertureValue=%s' % simg.fnumber,  # exiftool converts to APEX itself.
