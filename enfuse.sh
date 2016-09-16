@@ -29,7 +29,6 @@ function resize() {
     done
 
     convert "$FROM" $OPTS $CMDS "null:"
-    identify "${FROM/.exr/-*.exr}"
 }
 
 qp_exif $IN
