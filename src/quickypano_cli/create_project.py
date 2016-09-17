@@ -167,6 +167,34 @@ def main():
                       next_idx + ring_offset)
             submit_task(executor, idx + ring_offset, next_idx + ring_offset)
 
+    def connect_rings(name1, name2, executor):
+        """Determine suitable divisor for inter-ring connections."""
+
+        sett = project.settings
+
+        row_size1 = sett.row(name1)
+        row_size2 = sett.row(name2)
+        if row_size1 == row_size2:
+            # All the same size, divide into quarters
+            gcd = 4
+        else:
+            gcd = math.gcd(row_size1, row_size2)
+
+        log.debug('using gcd: %r', gcd)
+        step1 = row_size1 // gcd
+        step2 = row_size2 // gcd
+
+        start_idx1 = sett.start_offset(name1)
+        start_idx2 = sett.start_offset(name2)
+        ssize = project.stack_size
+
+        for stepidx in range(gcd):
+            idx1 = ssize * (start_idx1 + stepidx * step1)
+            idx2 = ssize * (start_idx2 + stepidx * step2)
+
+            log.debug('Connecting rings step %i, connecting %i - %i', stepidx,  idx1, idx2)
+            submit_task(executor, idx1, idx2)
+
     def find_all_control_points():
         # Create control points for each ring
         # TODO: use order from settings
@@ -185,18 +213,9 @@ def main():
             find_cpoints_for_ring(sett.ROW_DOWN, sett.start_offset('DOWN'), executor)
             find_cpoints_for_ring(sett.ROW_UP, sett.start_offset('UP'), executor)
 
-            # ## Attach rings
-            # From start of middle to start of the other rings
-            ssize = project.stack_size
-            down_start_idx = sett.ROW_MIDDLE * ssize
-            up_start_idx = (sett.ROW_MIDDLE + sett.ROW_DOWN) * ssize
-            submit_task(executor, 0, down_start_idx)
-            submit_task(executor, 0, up_start_idx)
-
-            # From mid of middle to mid of the other rings
-            row_middle_mid = ssize * sett.ROW_MIDDLE // 2
-            submit_task(executor, row_middle_mid, down_start_idx + ssize * sett.ROW_DOWN // 2)
-            submit_task(executor, row_middle_mid, up_start_idx + ssize * sett.ROW_UP // 2)
+            # Connect rings
+            connect_rings('MIDDLE', 'DOWN', executor)
+            connect_rings('MIDDLE', 'UP', executor)
 
             # TODO: zenith & nadir shots
 
