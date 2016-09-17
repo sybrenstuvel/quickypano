@@ -165,7 +165,7 @@ class SybrenLX100SmallStepsZenith(SybrenLX100):
     ROW_MIDDLE = 12
     ROW_DOWN = 12
     ROW_ZENITH = 1
-    ROW_NADIR = 0
+    ROW_NADIR = 1
 
     ORDER = ['MIDDLE', 'DOWN', 'UP', 'ZENITH', 'NADIR']
 
