@@ -25,6 +25,7 @@ class AbstractSettings:
         for key, value in data.items():
             setattr(self, key, value)
 
+    @functools.lru_cache()
     def row(self, label):
         return getattr(self, 'ROW_' + label)
 
