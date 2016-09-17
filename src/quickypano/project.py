@@ -144,19 +144,19 @@ class Project:
                 idx_in_row = stack_idx - start_down
                 row_size = self.settings.ROW_DOWN
                 pitch = -45
-            elif start_up <= stack_idx <= next_up:
+            elif start_up <= stack_idx < next_up:
                 # Up row
                 idx_in_row = stack_idx - start_up
                 row_size = self.settings.ROW_UP
                 pitch = 45
-            elif start_zenith <= stack_idx <= next_zenith:
+            elif start_zenith <= stack_idx < next_zenith:
                 idx_in_row = stack_idx - start_zenith
                 row_size = self.settings.ROW_ZENITH
-                pitch = -90
-            elif start_nadir <= stack_idx <= next_nadir:
+                pitch = 90
+            elif start_nadir <= stack_idx < next_nadir:
                 idx_in_row = stack_idx - start_nadir
                 row_size = self.settings.ROW_NADIR
-                pitch = 90
+                pitch = -90
             else:
                 log.warn('Unknown what to do with photo on stack index %i', stack_idx)
                 idx_in_row = 0
@@ -243,4 +243,3 @@ class Project:
             photo.parameters.update(new_params)
 
         return clone
-
