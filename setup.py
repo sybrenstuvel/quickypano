@@ -20,7 +20,7 @@ def read(*names, **kwargs):
 
 setup(
     name="quickypano",
-    version="0.1.0",
+    version="0.2.0",
     license="GPL",
     description="Simple panorama project creator for Hugin, aimed at 360/180 degree panoramas",
     long_description="%s\n%s" % (read("README.rst"),
@@ -35,7 +35,7 @@ setup(
     zip_safe=True,
     classifiers=[
         # complete classifier list: http://pypi.python.org/pypi?%3Aaction=list_classifiers
-        "Development Status :: 3 - Alpha",
+        "Development Status :: 4 - Beta",
         # "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)",
@@ -44,8 +44,8 @@ setup(
         "Operating System :: Microsoft :: Windows",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.3",
-        "Programming Language :: Python :: 3.4",
+        "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: Implementation :: CPython",
         "Programming Language :: Python :: Implementation :: PyPy",
         "Topic :: Utilities",
