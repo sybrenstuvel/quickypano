@@ -68,6 +68,7 @@ setup(
             "qp_make = quickypano_cli.make:main",
             "qp_exif = quickypano_cli.set_exif:main",
             "qp_panoexif = quickypano_cli.panoexif:main",
+            "qp_spark = quickypano_cli.spark_cpfind:main",
         ]
     }
 
