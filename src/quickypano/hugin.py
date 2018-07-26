@@ -151,6 +151,7 @@ def pto_var(input_filename, output_filename):
 def cpfind(input_filename, output_filename):
     subprocess.check_call([_cpfind,
                            input_filename,
+                           '--cache',
                            '-o', output_filename],
                           stdout=redirect_out,
                           stderr=redirect_out)
